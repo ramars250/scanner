@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
@@ -30,22 +31,46 @@ class MyApp extends StatelessWidget {
 
 class QRViewExample extends StatefulWidget {
   const QRViewExample({super.key});
-      // ({Key? key}) : super(key: key);
+  // ({Key? key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _QRViewExampleState();
 }
 
 class _QRViewExampleState extends State<QRViewExample> {
+  //用來查看是否有掃到條碼的變數
   Barcode? result;
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  final _form = GlobalKey<FormState>();
+  //儲存掃到內容的變數
+  late String title;
+  //寫入方法
+  void writeData() async {
+    _form.currentState?.save();
+    // Please replace the Database URL
+    // which we will get in “Add Realtime
+    // Database” step with DatabaseURL
+    var url =
+        "https://scanner-c3283-default-rtdb.firebaseio.com/" + "data.json";
+    // (Do not remove “data.json”,keep it as it is)
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        body: json.encode({"title": title}),
+      );
+    } catch (error) {
+      // ignore: use_rethrow_when_possible
+      throw error;
+    }
+  }
 
   // In order to get hot reload to work we need to pause the camera if the platform
   // is android, or resume the camera if the platform is iOS.
   @override
   void reassemble() {
     super.reassemble();
+    //如果設備是Android就暫停相機，否則就重置相機
     if (Platform.isAndroid) {
       controller!.pauseCamera();
     }
@@ -116,10 +141,17 @@ class _QRViewExampleState extends State<QRViewExample> {
                       Container(
                         margin: const EdgeInsets.all(8),
                         child: ElevatedButton(
-                          onPressed: () async {
-                            await controller?.pauseCamera();
+                          onPressed: () {
+                            setState(() {
+                              title = 'Data: ${result!.code} ${DateTime.now()}' ;
+                            });
+                            writeData();
+                            result = null;
+                            // await controller?.pauseCamera();
                           },
-                          child: const Text('pause',
+                          child: const Text('Submit'
+                              // 'pause'
+                              ,
                               style: TextStyle(fontSize: 20)),
                         ),
                       ),
@@ -147,7 +179,7 @@ class _QRViewExampleState extends State<QRViewExample> {
   Widget _buildQrView(BuildContext context) {
     // For this example we check how width or tall the device is and change the scanArea and overlay accordingly.
     var scanArea = (MediaQuery.of(context).size.width < 400 ||
-        MediaQuery.of(context).size.height < 400)
+            MediaQuery.of(context).size.height < 400)
         ? 150.0
         : 300.0;
     // To ensure the Scanner view is properly sizes after rotation
