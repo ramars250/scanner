@@ -33,14 +33,14 @@ class _LoginState extends State<Login> {
     return const Text('登入');
   }
 
-  Widget _entryField(String title, TextEditingController controller) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: title,
-      ),
-    );
-  }
+  // Widget _entryField(String title, TextEditingController controller) {
+  //   return TextField(
+  //     controller: controller,
+  //     decoration: InputDecoration(
+  //       labelText: title,
+  //     ),
+  //   );
+  // }
 
   Widget _errorMessage() {
     return Text(errorMessage == '' ? '' : '$errorMessage');

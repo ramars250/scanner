@@ -7,6 +7,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+// import 'package:firebase_database/firebase_database.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -21,8 +22,18 @@ class _HomePageState extends State<HomePage> {
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   final _form = GlobalKey<FormState>();
+  // final database = FirebaseDatabase.instance.ref();
 
   late String title;
+  late String _data;
+  late String _time;
+  // late DatabaseReference dbRef;
+
+  // @override
+  // void initState() {
+  //   dbRef = FirebaseDatabase.instance.ref().child('user');
+  //   super.initState();
+  // }
 
   //寫入方法
   void writeData() async {
@@ -31,12 +42,12 @@ class _HomePageState extends State<HomePage> {
     // which we will get in “Add Realtime
     // Database” step with DatabaseURL
     var url =
-        "https://scanner-c3283-default-rtdb.firebaseio.com/" + "data.json";
+        'https://scanner-c3283-default-rtdb.firebaseio.com/' 'user.json';
     // (Do not remove “data.json”,keep it as it is)
     try {
       final response = await http.post(
         Uri.parse(url),
-        body: json.encode({"title": title}),
+        body: json.encode({"title": title, 'data': _data, 'time': _time}),
       );
     } catch (error) {
       // ignore: use_rethrow_when_possible
@@ -75,6 +86,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+
+    // final dbRef = database.child('user');
+
     return Scaffold(
       appBar: AppBar(
         title: _title(),
@@ -92,7 +106,7 @@ class _HomePageState extends State<HomePage> {
                 children: <Widget>[
                   if (result != null)
                     Text(
-                        'Barcode Type: ${describeEnum(result!.format)}   Data: ${result!.code}')
+                        'Barcode Type: ${user?.uid}   Data: ${result!.code}')
                   else
                     const Text('Scan a code'),
                   Row(
@@ -143,8 +157,15 @@ class _HomePageState extends State<HomePage> {
                         child: ElevatedButton(
                           onPressed: () {
                             setState(() {
-                              title = '${user?.email} Data: ${result!.code} ${DateTime.now()}';
+                              title = '${user?.uid}}';
+                              _data = '${result!.code}';
+                              _time = '${DateTime.now()}';
                             });
+                            // dbRef.post({
+                            //   'title': title,
+                            //   'data': _data,
+                            //   'time': _time,
+                            // });
                             writeData();
                             result = null;
                             // await controller?.pauseCamera();
